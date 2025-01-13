@@ -23,20 +23,27 @@ let tim =(e)=>{
     settime(e.target.value)
 }
   useEffect(() => {
-    async function run() {
-      const genAI = new GoogleGenerativeAI(API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    let isCancelled = false; 
+    const timeout = setTimeout(() => {
+      async function run() {
+        if (isCancelled) return;
+        const genAI = new GoogleGenerativeAI(API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-      const prompt = "suggest a destination for vacation based on reference = "+preference+" budget = "+budget+" no of travellers = "+travellers+"which month ="+time;
+        const prompt = "suggest a destination for vacation based on reference = " + preference + " budget = " + budget + " no of travellers = " + travellers + "which month =" + time;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text1 = response.text().replace(/\*/g,"\n");
-      setText(text1)
-    }
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text1 = response.text().replace(/\*/g, "\n");
+        setText(text1)
+      }
 
-    run();
-  }, [preference,budget,time,travellers]); 
+      run();
+    }, 3000); // 3-second delay
+
+    // Cleanup function to clear timeout when dependencies change
+    return () => clearTimeout(timeout);
+  }, [preference, budget, time, travellers]);
 
   return (
     <div className='outerdiv'>
